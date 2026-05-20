@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ConditionBadge } from '@/components/condition-badge';
 import { Colors } from '@/constants/theme';
+import { MOCK_CONVERSATIONS } from '@/mocks/messages';
 import { MOCK_PRODUCTS } from '@/mocks/products';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -162,7 +163,18 @@ export default function ProductDetailScreen() {
           style={styles.messageBtn}
           activeOpacity={0.8}
           onPress={() => {
-            // TODO: navigate to chat — implemented in feature/messaging
+            // TODO: replace with real API call to get/create conversation
+            const existing = MOCK_CONVERSATIONS.find(
+              c => c.product.id === product.id
+            );
+            router.push({
+              pathname: '/chat/[id]',
+              params: {
+                id: existing?.id ?? 'new',
+                productId: product.id,
+                sellerId: product.seller.id,
+              },
+            });
           }}
         >
           <Ionicons name="chatbubble-outline" size={17} color={Colors.primary} />
