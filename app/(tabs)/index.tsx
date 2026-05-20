@@ -92,9 +92,9 @@ export default function HomeScreen() {
         renderItem={({ item }) => (
           <ProductCard
             product={item}
-            onPress={() => {
-              // TODO: navigate to product detail — implemented in feature/product-detail
-            }}
+            onPress={() =>
+              router.push({ pathname: '/product/[id]', params: { id: item.id } })
+            }
           />
         )}
       />
