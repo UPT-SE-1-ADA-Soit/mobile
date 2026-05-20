@@ -1,7 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Redirect, Tabs } from 'expo-router';
+import { Platform, StyleSheet, View } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useAuth } from '@/context/auth';
 
@@ -20,6 +21,9 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: Colors.background,
           borderTopColor: Colors.border,
+          height: Platform.OS === 'ios' ? 84 : 64,
+          paddingBottom: Platform.OS === 'ios' ? 24 : 8,
+          paddingTop: 8,
         },
       }}
     >
@@ -27,15 +31,61 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={26} name="house.fill" color={color} />
+          tabBarIcon: ({ color }) => <Ionicons name="home" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="search"
+        options={{
+          title: 'Search',
+          tabBarIcon: ({ color }) => <Ionicons name="search" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="sell"
+        options={{
+          title: '',
+          tabBarIcon: () => (
+            <View style={styles.sellIcon}>
+              <Ionicons name="add" size={28} color="#fff" />
+            </View>
           ),
         }}
       />
       <Tabs.Screen
-        name="explore"
-        options={{ href: null }}
+        name="messages"
+        options={{
+          title: 'Messages',
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="chatbubble-ellipses" size={24} color={color} />
+          ),
+        }}
       />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color }) => <Ionicons name="person" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen name="explore" options={{ href: null }} />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  sellIcon: {
+    backgroundColor: Colors.primary,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Platform.OS === 'ios' ? 16 : 4,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+});
