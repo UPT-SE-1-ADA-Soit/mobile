@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ProductCard } from '@/components/product-card';
 import { Colors } from '@/constants/theme';
 import { useAuth } from '@/context/auth';
+import { useLikes } from '@/context/likes';
 import { MOCK_PRODUCTS } from '@/mocks/products';
 import { Product } from '@/types';
 
@@ -54,6 +55,7 @@ export default function ProfileScreen() {
   const scrollRef = useRef<ScrollView>(null);
 
   const [activeTab, setActiveTab] = useState<Tab>('listings');
+  const { likedIds } = useLikes();
 
   useFocusEffect(
     useCallback(() => {
@@ -71,7 +73,7 @@ export default function ProfileScreen() {
   const myListings = MOCK_PRODUCTS.filter(p => p.seller.id === user?.id);
 
   // TODO: replace with GET /api/products/liked?userId={user.id}
-  const favourites = MOCK_PRODUCTS.filter(p => p.isLiked);
+  const favourites = MOCK_PRODUCTS.filter(p => likedIds.has(p.id));
 
   const stats = [
     { label: 'Listings', value: myListings.length },

@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ConditionBadge } from '@/components/condition-badge';
 import { Colors } from '@/constants/theme';
+import { useLikes } from '@/context/likes';
 import { MOCK_CONVERSATIONS } from '@/mocks/messages';
 import { MOCK_PRODUCTS } from '@/mocks/products';
 
@@ -28,8 +29,10 @@ export default function ProductDetailScreen() {
   // TODO: replace with GET /api/products/{id}
   const product = MOCK_PRODUCTS.find(p => p.id === id);
 
+  const { isLiked, toggleLike } = useLikes();
+  const liked = product ? isLiked(product.id) : false;
+
   const [activeImage, setActiveImage] = useState(0);
-  const [liked, setLiked] = useState(product?.isLiked ?? false);
 
   if (!product) {
     return (
@@ -79,7 +82,7 @@ export default function ProductDetailScreen() {
         {/* Like button */}
         <TouchableOpacity
           style={[styles.floatBtn, styles.likeBtn, { top: insets.top + 8 }]}
-          onPress={() => setLiked(v => !v)}
+          onPress={() => toggleLike(product.id)}
           activeOpacity={0.8}
         >
           <Ionicons
