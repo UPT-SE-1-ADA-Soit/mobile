@@ -1,8 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { Colors } from '@/constants/theme';
+import { useAuth } from '@/context/auth';
 import { useLikes } from '@/context/likes';
 import { Product } from '@/types';
 
@@ -12,8 +14,15 @@ type Props = {
 };
 
 export function ProductCard({ product, onPress }: Props) {
+  const { user } = useAuth();
   const { isLiked, toggleLike } = useLikes();
-  const liked = isLiked(product.id);
+  const router = useRouter();
+  const liked = user ? isLiked(product.id) : false;
+
+  function handleHeartPress() {
+    if (!user) { router.push('/(auth)/login'); return; }
+    toggleLike(product.id);
+  }
 
   return (
     <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.9}>
@@ -25,7 +34,7 @@ export function ProductCard({ product, onPress }: Props) {
         />
         <TouchableOpacity
           style={styles.heartBtn}
-          onPress={() => toggleLike(product.id)}
+          onPress={handleHeartPress}
           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
         >
           <Ionicons

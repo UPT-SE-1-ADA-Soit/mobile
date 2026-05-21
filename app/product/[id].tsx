@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ConditionBadge } from '@/components/condition-badge';
 import { Colors } from '@/constants/theme';
+import { useAuth } from '@/context/auth';
 import { useLikes } from '@/context/likes';
 import { MOCK_CONVERSATIONS } from '@/mocks/messages';
 import { MOCK_PRODUCTS } from '@/mocks/products';
@@ -25,6 +26,7 @@ export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
 
   // TODO: replace with GET /api/products/{id}
   const product = MOCK_PRODUCTS.find(p => p.id === id);
@@ -166,6 +168,7 @@ export default function ProductDetailScreen() {
           style={styles.messageBtn}
           activeOpacity={0.8}
           onPress={() => {
+            if (!user) { router.push('/(auth)/login'); return; }
             // TODO: replace with real API call to get/create conversation
             const existing = MOCK_CONVERSATIONS.find(
               c => c.product.id === product.id
@@ -188,6 +191,7 @@ export default function ProductDetailScreen() {
           style={styles.buyBtn}
           activeOpacity={0.8}
           onPress={() => {
+            if (!user) { router.push('/(auth)/login'); return; }
             // TODO: implement purchase flow
           }}
         >

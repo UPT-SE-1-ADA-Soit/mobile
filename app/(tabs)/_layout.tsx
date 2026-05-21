@@ -11,7 +11,7 @@ export default function TabLayout() {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
 
-  if (!user) return <Redirect href="/(auth)/login" />;
+  if (!user) return <Redirect href="/landing" />;
 
   const tabBarHeight = Platform.OS === 'ios' ? 84 : 56 + insets.bottom;
   const tabBarPaddingBottom = Platform.OS === 'ios' ? 24 : insets.bottom + 4;
