@@ -17,7 +17,7 @@ export default function MessagesScreen() {
   const totalUnread = conversations.reduce((sum, c) => sum + c.unreadCount, 0);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#fff' }}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Messages</Text>

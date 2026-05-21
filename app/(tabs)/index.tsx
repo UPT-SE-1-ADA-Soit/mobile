@@ -27,7 +27,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#ffffff' }}>
       <FlatList
         data={products}
         keyExtractor={p => p.id}

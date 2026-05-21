@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ProfileScreen() {
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#ffffff' }}>
       <View className="flex-1 items-center justify-center">
         <Text className="text-gray-400 text-base">Profile — coming soon</Text>
       </View>

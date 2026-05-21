@@ -102,7 +102,7 @@ export default function SellScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#fff' }}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>List an Item</Text>
