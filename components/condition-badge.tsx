@@ -1,6 +1,7 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { ProductCondition } from '@/types';
+import { styles } from './condition-badge-styles';
 
 const config: Record<ProductCondition, { label: string; color: string; bg: string }> = {
   'new':       { label: 'New',      color: '#059669', bg: '#D1FAE5' },
@@ -17,15 +18,3 @@ export function ConditionBadge({ condition }: { condition: ProductCondition }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  text: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-});

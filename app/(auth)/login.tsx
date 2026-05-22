@@ -5,7 +5,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
@@ -13,8 +12,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { InputField } from '@/components/input-field';
-import { Colors } from '@/constants/theme';
 import { useAuth } from '@/context/auth';
+import { styles } from './login-styles';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -99,21 +98,3 @@ export default function LoginScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  button: {
-    backgroundColor: Colors.primary,
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});

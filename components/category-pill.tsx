@@ -1,7 +1,7 @@
-import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { Text, TouchableOpacity } from 'react-native';
 
-import { Colors } from '@/constants/theme';
 import { Category } from '@/types';
+import { styles } from './category-pill-styles';
 
 type Props = {
   category: Category;
@@ -22,24 +22,3 @@ export function CategoryPill({ category, selected, onPress }: Props) {
     </TouchableOpacity>
   );
 }
-
-const styles = StyleSheet.create({
-  pill: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
-    marginRight: 8,
-  },
-  pillSelected: {
-    backgroundColor: Colors.primary,
-  },
-  text: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#4B5563',
-  },
-  textSelected: {
-    color: '#ffffff',
-  },
-});

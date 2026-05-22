@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CategoryPill } from '@/components/category-pill';
@@ -11,6 +11,7 @@ import { Colors } from '@/constants/theme';
 import { useAuth } from '@/context/auth';
 import { MOCK_CATEGORIES } from '@/mocks/categories';
 import { MOCK_PRODUCTS } from '@/mocks/products';
+import { styles } from './index-styles';
 
 export default function HomeScreen() {
   const { user } = useAuth();
@@ -101,70 +102,3 @@ export default function HomeScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 12,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  locationText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    fontWeight: '500',
-  },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: Colors.secondary,
-    marginHorizontal: 16,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  searchPlaceholder: {
-    flex: 1,
-    fontSize: 15,
-    color: '#9CA3AF',
-  },
-  categoryList: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  sectionTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: Colors.text,
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
-  row: {
-    gap: 12,
-    paddingHorizontal: 16,
-  },
-  listContent: {
-    paddingBottom: 32,
-  },
-  empty: {
-    alignItems: 'center',
-    paddingTop: 40,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-});
