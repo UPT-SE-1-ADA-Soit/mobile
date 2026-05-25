@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -26,8 +27,6 @@ const CONDITIONS: { value: ProductCondition; label: string }[] = [
   { value: 'fair', label: 'Fair' },
 ];
 
-const PLACEHOLDER_SEEDS = [101, 202, 303, 404, 505];
-
 export default function SellScreen() {
   const router = useRouter();
   const { user } = useAuth();
@@ -41,11 +40,24 @@ export default function SellScreen() {
   const [location, setLocation] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  function handleAddPhoto() {
+  async function handleAddPhoto() {
     if (photos.length >= 5) return;
-    // TODO: replace with expo-image-picker — ImagePicker.launchImageLibraryAsync(...)
-    const seed = PLACEHOLDER_SEEDS[photos.length];
-    setPhotos(prev => [...prev, `https://picsum.photos/seed/${seed}/400/400`]);
+
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Allow access to your photo library to add photos.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: false,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      setPhotos(prev => [...prev, result.assets[0].uri]);
+    }
   }
 
   function handleRemovePhoto(index: number) {
