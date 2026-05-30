@@ -1,14 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Redirect, useRouter } from 'expo-router';
-import { useState } from 'react';
-import { FlatList, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CategoryPill } from '@/components/category-pill';
 import { ProductCard } from '@/components/product-card';
 import { useAuth } from '@/context/auth';
-import { MOCK_CATEGORIES } from '@/mocks/categories';
-import { MOCK_PRODUCTS } from '@/mocks/products';
+import { getCategoryIcon, productApi } from '@/services/api';
+import { Category, Product } from '@/types';
 import { styles } from './landing-styles';
 
 export default function LandingScreen() {
@@ -16,11 +16,36 @@ export default function LandingScreen() {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([
+      productApi.getCategories(),
+      productApi.getProducts(),
+    ]).then(([cats, prods]) => {
+      setCategories(cats.map(c => ({ id: String(c.id), name: c.name, icon: getCategoryIcon(c.name) })));
+      setAllProducts(prods.map(p => ({
+        id: String(p.id),
+        title: p.name,
+        description: '',
+        price: Number(p.price),
+        images: p.thumbnailUrl ? [p.thumbnailUrl] : [],
+        category: { id: String(p.categoryId), name: '', icon: 'grid-outline' },
+        seller: { id: '', name: '', email: '' },
+        location: p.region ?? '',
+        createdAt: new Date().toISOString(),
+        isLiked: false,
+        views: 0,
+      })));
+    }).catch(() => {}).finally(() => setLoading(false));
+  }, []);
 
   if (user) return <Redirect href="/(tabs)" />;
 
-  // TODO: replace with GET /api/products/recent
-  const products = MOCK_PRODUCTS.filter(p => {
+  const products = allProducts.filter(p => {
     const matchesQuery =
       query.trim() === '' ||
       p.title.toLowerCase().includes(query.toLowerCase());
@@ -88,7 +113,7 @@ export default function LandingScreen() {
 
             {/* ── Category pills ── */}
             <FlatList
-              data={MOCK_CATEGORIES}
+              data={categories}
               keyExtractor={c => c.id}
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -109,7 +134,10 @@ export default function LandingScreen() {
         }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>No items found.</Text>
+            {loading
+              ? <ActivityIndicator size="large" color="#09A5A0" />
+              : <Text style={styles.emptyText}>No items found.</Text>
+            }
           </View>
         }
         renderItem={({ item }) => (

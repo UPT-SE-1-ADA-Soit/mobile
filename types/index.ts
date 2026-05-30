@@ -1,18 +1,18 @@
 export type User = {
   id: string;
   name: string;
-  avatar: string;
+  avatar?: string;
   email: string;
-  location: string;
-  rating: number;
-  totalSales: number;
-  joinedAt: string;
+  location?: string;
+  rating?: number;
+  totalSales?: number;
+  joinedAt?: string;
 };
 
 export type Category = {
   id: string;
   name: string;
-  icon: string; // Ionicons icon name
+  icon: string;
 };
 
 export type ProductCondition = 'new' | 'like-new' | 'good' | 'fair';
@@ -26,7 +26,7 @@ export type Product = {
   category: Category;
   seller: User;
   location: string;
-  condition: ProductCondition;
+  condition?: ProductCondition;
   createdAt: string;
   isLiked: boolean;
   views: number;

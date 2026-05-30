@@ -1,6 +1,7 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
-import { MOCK_PRODUCTS } from '@/mocks/products';
+import { productApi } from '@/services/api';
+import { useAuth } from './auth';
 
 type LikesContextType = {
   toggleLike: (productId: string) => void;
@@ -11,15 +12,34 @@ type LikesContextType = {
 const LikesContext = createContext<LikesContextType | null>(null);
 
 export function LikesProvider({ children }: { children: React.ReactNode }) {
-  const [likedIds, setLikedIds] = useState<Set<string>>(
-    () => new Set(MOCK_PRODUCTS.filter(p => p.isLiked).map(p => p.id))
-  );
+  const { user } = useAuth();
+  const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!user) {
+      setLikedIds(new Set());
+      return;
+    }
+    productApi
+      .getFavorites(Number(user.id))
+      .then(favorites => setLikedIds(new Set(favorites.map(f => String(f.id)))))
+      .catch(() => {});
+  }, [user?.id]);
 
   function toggleLike(productId: string) {
+    if (!user) return;
+    const userId = Number(user.id);
+    const numProductId = Number(productId);
+
     setLikedIds(prev => {
       const next = new Set(prev);
-      if (next.has(productId)) next.delete(productId);
-      else next.add(productId);
+      if (next.has(productId)) {
+        next.delete(productId);
+        productApi.removeFavorite(userId, numProductId).catch(() => {});
+      } else {
+        next.add(productId);
+        productApi.addFavorite(userId, numProductId).catch(() => {});
+      }
       return next;
     });
   }

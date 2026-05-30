@@ -1,11 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   BackHandler,
   FlatList,
-  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -15,10 +14,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ProductCard } from '@/components/product-card';
 import { Colors } from '@/constants/theme';
-import { MOCK_CATEGORIES } from '@/mocks/categories';
-import { MOCK_PRODUCTS } from '@/mocks/products';
-import { MOCK_USERS } from '@/mocks/users';
-import { Category } from '@/types';
+import { getCategoryIcon, productApi } from '@/services/api';
+import { Category, Product } from '@/types';
 import { styles } from './search-styles';
 
 // Colour palette for the category grid cards
@@ -50,6 +47,9 @@ export default function SearchScreen() {
 
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const isBrowse = !selectedCategory && query.trim() === '';
   const isCategoryView = !!selectedCategory;
@@ -62,32 +62,49 @@ export default function SearchScreen() {
 
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (selectedCategory) {
-        handleBackFromCategory();
-        return true; // consumed — don't let the OS navigate away
-      }
-      return false; // let normal back behaviour happen
+      if (selectedCategory) { handleBackFromCategory(); return true; }
+      return false;
     });
     return () => sub.remove();
   }, [selectedCategory]);
 
-  // TODO: replace with GET /api/products/search?q={query}&categoryId={selectedCategory?.id}
-  const filteredProducts = MOCK_PRODUCTS.filter(p => {
-    const matchesQuery =
-      query.trim() === '' ||
-      p.title.toLowerCase().includes(query.toLowerCase()) ||
-      p.description.toLowerCase().includes(query.toLowerCase());
-    const matchesCategory = !selectedCategory || p.category.id === selectedCategory.id;
-    return matchesQuery && matchesCategory;
-  });
+  useEffect(() => {
+    productApi.getCategories().then(data => {
+      setCategories(data.map(c => ({ id: String(c.id), name: c.name, icon: getCategoryIcon(c.name) })));
+    }).catch(() => {});
+  }, []);
 
-  // TODO: replace with GET /api/users/search?q={query}
-  const filteredUsers = MOCK_USERS.filter(
-    u =>
-      query.trim() !== '' &&
-      (u.name.toLowerCase().includes(query.toLowerCase()) ||
-        u.location.toLowerCase().includes(query.toLowerCase()))
-  );
+  useEffect(() => {
+    if (!query.trim() && !selectedCategory) {
+      setProducts([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const timer = setTimeout(() => {
+      const params: Parameters<typeof productApi.getProducts>[0] = {};
+      if (query.trim()) params.searchQuery = query.trim();
+      if (selectedCategory) params.categoryId = Number(selectedCategory.id);
+      productApi.getProducts(params).then(data => {
+        setProducts(data.map(p => ({
+          id: String(p.id),
+          title: p.name,
+          description: '',
+          price: Number(p.price),
+          images: p.thumbnailUrl ? [p.thumbnailUrl] : [],
+          category: { id: String(p.categoryId), name: selectedCategory?.name ?? '', icon: 'grid-outline' },
+          seller: { id: '', name: '', email: '' },
+          location: p.region ?? '',
+          createdAt: new Date().toISOString(),
+          isLiked: false,
+          views: 0,
+        })));
+      }).catch(() => {}).finally(() => setLoading(false));
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [query, selectedCategory]);
 
   function handleClearQuery() {
     setQuery('');
@@ -154,7 +171,7 @@ export default function SearchScreen() {
           />
           <Text style={styles.categoryHeaderTitle}>{selectedCategory!.name}</Text>
           <Text style={styles.categoryHeaderCount}>
-            {filteredProducts.length} {filteredProducts.length === 1 ? 'item' : 'items'}
+            {products.length} {products.length === 1 ? 'item' : 'items'}
           </Text>
         </View>
       )}
@@ -162,7 +179,7 @@ export default function SearchScreen() {
       {/* ── Browse: category grid ── */}
       {isBrowse && (
         <FlatList
-          data={MOCK_CATEGORIES}
+          data={categories}
           keyExtractor={c => c.id}
           numColumns={2}
           showsVerticalScrollIndicator={false}
@@ -190,7 +207,7 @@ export default function SearchScreen() {
       {/* ── Category view: product grid ── */}
       {isCategoryView && (
         <FlatList
-          data={filteredProducts}
+          data={products}
           keyExtractor={p => p.id}
           numColumns={2}
           showsVerticalScrollIndicator={false}
@@ -199,11 +216,14 @@ export default function SearchScreen() {
           contentContainerStyle={styles.gridContent}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Ionicons name="search-outline" size={40} color={Colors.border} />
-              <Text style={styles.emptyTitle}>No items found</Text>
-              <Text style={styles.emptySubtext}>
-                Try different keywords in {selectedCategory?.name}.
-              </Text>
+              {loading
+                ? <ActivityIndicator size="large" color="#09A5A0" />
+                : <>
+                    <Ionicons name="search-outline" size={40} color={Colors.border} />
+                    <Text style={styles.emptyTitle}>No items found</Text>
+                    <Text style={styles.emptySubtext}>Try different keywords in {selectedCategory?.name}.</Text>
+                  </>
+              }
             </View>
           }
           renderItem={({ item }) => (
@@ -215,69 +235,44 @@ export default function SearchScreen() {
         />
       )}
 
-      {/* ── Global search: items + people ── */}
+      {/* ── Global search: items ── */}
       {isGlobalSearch && (
-        <ScrollView
+        <FlatList
+          data={products}
+          keyExtractor={p => p.id}
+          numColumns={2}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={styles.globalContent}
-        >
-          {/* People */}
-          {filteredUsers.length > 0 && (
-            <View>
-              <Text style={styles.sectionTitle}>People</Text>
-              {filteredUsers.map(u => (
-                <TouchableOpacity
-                  key={u.id}
-                  style={styles.userRow}
-                  activeOpacity={0.75}
-                  onPress={() => {
-                    // TODO: navigate to seller profile — GET /api/users/{u.id}
-                  }}
-                >
-                  <Image source={{ uri: u.avatar }} style={styles.userAvatar} contentFit="cover" />
-                  <View style={styles.userInfo}>
-                    <Text style={styles.userName}>{u.name}</Text>
-                    <View style={styles.userMeta}>
-                      <Ionicons name="location-outline" size={12} color={Colors.textSecondary} />
-                      <Text style={styles.userMetaText}>{u.location}</Text>
-                      <Ionicons name="star" size={12} color="#F59E0B" />
-                      <Text style={styles.userMetaText}>{u.rating}</Text>
-                    </View>
-                  </View>
-                  <Ionicons name="chevron-forward" size={18} color={Colors.border} />
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-
-          {/* Items */}
-          <Text style={styles.sectionTitle}>
-            Items
-            <Text style={styles.sectionCount}> · {filteredProducts.length}</Text>
-          </Text>
-
-          {filteredProducts.length === 0 ? (
+          columnWrapperStyle={styles.gridRow}
+          contentContainerStyle={styles.gridContent}
+          ListHeaderComponent={
+            <Text style={styles.sectionTitle}>
+              Items<Text style={styles.sectionCount}> · {products.length}</Text>
+            </Text>
+          }
+          ListEmptyComponent={
             <View style={styles.empty}>
-              <Ionicons name="search-outline" size={40} color={Colors.border} />
-              <Text style={styles.emptyTitle}>No items found</Text>
-              <Text style={styles.emptySubtext}>Try different keywords or browse by category.</Text>
+              {loading
+                ? <ActivityIndicator size="large" color="#09A5A0" />
+                : <>
+                    <Ionicons name="search-outline" size={40} color={Colors.border} />
+                    <Text style={styles.emptyTitle}>No items found</Text>
+                    <Text style={styles.emptySubtext}>Try different keywords or browse by category.</Text>
+                  </>
+              }
             </View>
-          ) : (
-            <View style={styles.productsGrid}>
-              {filteredProducts.map((item) => (
-                <View key={item.id} style={styles.productGridItem}>
-                  <ProductCard
-                    product={item}
-                    onPress={() =>
-                      router.push({ pathname: '/product/[id]', params: { id: item.id } })
-                    }
-                  />
-                </View>
-              ))}
+          }
+          renderItem={({ item }) => (
+            <View style={styles.productGridItem}>
+              <ProductCard
+                product={item}
+                onPress={() =>
+                  router.push({ pathname: '/product/[id]', params: { id: item.id } })
+                }
+              />
             </View>
           )}
-        </ScrollView>
+        />
       )}
     </SafeAreaView>
   );
